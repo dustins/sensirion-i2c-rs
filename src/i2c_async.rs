@@ -12,21 +12,21 @@ use embedded_hal_async::i2c;
 pub use crate::i2c::Error;
 
 /// Write an u8 command to the I²C bus.
-pub async fn write_command_u8<I: i2c::I2c>(
+pub async fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
-    addr: u8,
-    command: u8,
+    addr: A,
+    command: impl Into<u8>,
 ) -> Result<(), I::Error> {
-    i2c.write(addr, &command.to_be_bytes()).await
+    i2c.write(addr, &command.into().to_be_bytes()).await
 }
 
 /// Write an u16 command to the I²C bus.
-pub async fn write_command_u16<I: i2c::I2c>(
+pub async fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
-    addr: u8,
-    command: u16,
+    addr: A,
+    command: impl Into<u16>,
 ) -> Result<(), I::Error> {
-    i2c.write(addr, &command.to_be_bytes()).await
+    i2c.write(addr, &command.into().to_be_bytes()).await
 }
 
 /// Read data into the provided buffer and validate the CRC8 checksum.
@@ -37,9 +37,9 @@ pub async fn write_command_u16<I: i2c::I2c>(
 ///
 /// This method will consider every third byte a checksum byte. If the buffer size is not a
 /// multiple of 3, then it will panic.
-pub async fn read_words_with_crc<I: i2c::I2c>(
+pub async fn read_words_with_crc<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
-    addr: u8,
+    addr: A,
     data: &mut [u8],
 ) -> Result<(), Error<I>> {
     assert!(

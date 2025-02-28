@@ -21,18 +21,30 @@ impl<I: i2c::ErrorType> From<crc8::Error> for Error<I> {
 
 /// Write an u16 command to the I²C bus.
 #[deprecated(note = "Please use `write_command_u16` instead.")]
-pub fn write_command<I: i2c::I2c>(i2c: &mut I, addr: u8, command: u16) -> Result<(), I::Error> {
+pub fn write_command<A: i2c::AddressMode, I: i2c::I2c<A>>(
+    i2c: &mut I,
+    addr: A,
+    command: impl Into<u16>,
+) -> Result<(), I::Error> {
     write_command_u16(i2c, addr, command)
 }
 
 /// Write an u8 command to the I²C bus.
-pub fn write_command_u8<I: i2c::I2c>(i2c: &mut I, addr: u8, command: u8) -> Result<(), I::Error> {
-    i2c.write(addr, &command.to_be_bytes())
+pub fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A>>(
+    i2c: &mut I,
+    addr: A,
+    command: impl Into<u8>,
+) -> Result<(), I::Error> {
+    i2c.write(addr, &command.into().to_be_bytes())
 }
 
 /// Write an u16 command to the I²C bus.
-pub fn write_command_u16<I: i2c::I2c>(i2c: &mut I, addr: u8, command: u16) -> Result<(), I::Error> {
-    i2c.write(addr, &command.to_be_bytes())
+pub fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A>>(
+    i2c: &mut I,
+    addr: A,
+    command: impl Into<u16>,
+) -> Result<(), I::Error> {
+    i2c.write(addr, &command.into().to_be_bytes())
 }
 
 /// Read data into the provided buffer and validate the CRC8 checksum.
@@ -43,9 +55,9 @@ pub fn write_command_u16<I: i2c::I2c>(i2c: &mut I, addr: u8, command: u16) -> Re
 ///
 /// This method will consider every third byte a checksum byte. If the buffer size is not a
 /// multiple of 3, then it will panic.
-pub fn read_words_with_crc<I: i2c::I2c>(
+pub fn read_words_with_crc<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
-    addr: u8,
+    addr: A,
     data: &mut [u8],
 ) -> Result<(), Error<I>> {
     assert!(
