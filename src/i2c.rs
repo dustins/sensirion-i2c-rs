@@ -44,7 +44,7 @@ pub fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A> + Debug>(
             .map_err(|_| Error::<I>::InvalidCommand)?
             .to_be_bytes(),
     )
-    .map_err(|e| Error::I2cWrite(e))
+    .map_err(Error::I2cWrite)
 }
 
 /// Write an u16 command to the I²C bus.
@@ -60,7 +60,7 @@ pub fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A> + Debug>(
             .map_err(|_| Error::<I>::InvalidCommand)?
             .to_be_bytes(),
     )
-    .map_err(|e| Error::I2cWrite(e))
+    .map_err(Error::I2cWrite)
 }
 
 /// Read data into the provided buffer and validate the CRC8 checksum.

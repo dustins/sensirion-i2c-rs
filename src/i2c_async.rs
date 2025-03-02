@@ -15,18 +15,34 @@ pub use crate::i2c::Error;
 pub async fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
     addr: A,
-    command: impl Into<u8>,
-) -> Result<(), I::Error> {
-    i2c.write(addr, &command.into().to_be_bytes()).await
+    command: impl TryInto<u8>,
+) -> Result<(), Error<I>> {
+    i2c.write(
+        addr,
+        &command
+            .try_into()
+            .map_err(|_| Error::InvalidCommand)?
+            .to_be_bytes(),
+    )
+    .await
+    .map_err(Error::I2cWrite)
 }
 
 /// Write an u16 command to the I²C bus.
 pub async fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A>>(
     i2c: &mut I,
     addr: A,
-    command: impl Into<u16>,
-) -> Result<(), I::Error> {
-    i2c.write(addr, &command.into().to_be_bytes()).await
+    command: impl TryInto<u16>,
+) -> Result<(), Error<I>> {
+    i2c.write(
+        addr,
+        &command
+            .try_into()
+            .map_err(|_| Error::InvalidCommand)?
+            .to_be_bytes(),
+    )
+    .await
+    .map_err(Error::I2cWrite)
 }
 
 /// Read data into the provided buffer and validate the CRC8 checksum.
