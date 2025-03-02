@@ -2,6 +2,7 @@
 
 use crate::crc8;
 use core::{convert::TryInto, fmt::Debug};
+
 use embedded_hal::i2c;
 
 /// All possible errors in this crate

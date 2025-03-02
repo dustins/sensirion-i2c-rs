@@ -7,6 +7,7 @@
 //! [`embedded-hal-async`]: https://crates.io/crates/embedded-hal-async
 
 use crate::crc8;
+use core::{convert::TryInto, fmt::Debug};
 use embedded_hal_async::i2c;
 
 pub use crate::i2c::Error;
