@@ -1,6 +1,7 @@
 //! Helper functions for I²C communication.
 
 use crate::crc8;
+use core::{convert::TryInto, fmt::Debug};
 use embedded_hal::i2c;
 
 /// All possible errors in this crate
@@ -8,6 +9,7 @@ use embedded_hal::i2c;
 pub enum Error<I: i2c::ErrorType> {
     I2cWrite(I::Error),
     I2cRead(I::Error),
+    InvalidCommand,
     Crc,
 }
 
@@ -21,30 +23,44 @@ impl<I: i2c::ErrorType> From<crc8::Error> for Error<I> {
 
 /// Write an u16 command to the I²C bus.
 #[deprecated(note = "Please use `write_command_u16` instead.")]
-pub fn write_command<A: i2c::AddressMode, I: i2c::I2c<A>>(
+pub fn write_command<A: i2c::AddressMode, I: i2c::I2c<A> + Debug>(
     i2c: &mut I,
     addr: A,
-    command: impl Into<u16>,
-) -> Result<(), I::Error> {
+    command: impl TryInto<u16>,
+) -> Result<(), Error<I>> {
     write_command_u16(i2c, addr, command)
 }
 
 /// Write an u8 command to the I²C bus.
-pub fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A>>(
+pub fn write_command_u8<A: i2c::AddressMode, I: i2c::I2c<A> + Debug>(
     i2c: &mut I,
     addr: A,
-    command: impl Into<u8>,
-) -> Result<(), I::Error> {
-    i2c.write(addr, &command.into().to_be_bytes())
+    command: impl TryInto<u8>,
+) -> Result<(), Error<I>> {
+    i2c.write(
+        addr,
+        &command
+            .try_into()
+            .map_err(|_| Error::<I>::InvalidCommand)?
+            .to_be_bytes(),
+    )
+    .map_err(|e| Error::I2cWrite(e))
 }
 
 /// Write an u16 command to the I²C bus.
-pub fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A>>(
+pub fn write_command_u16<A: i2c::AddressMode, I: i2c::I2c<A> + Debug>(
     i2c: &mut I,
     addr: A,
-    command: impl Into<u16>,
-) -> Result<(), I::Error> {
-    i2c.write(addr, &command.into().to_be_bytes())
+    command: impl TryInto<u16>,
+) -> Result<(), Error<I>> {
+    i2c.write(
+        addr,
+        &command
+            .try_into()
+            .map_err(|_| Error::<I>::InvalidCommand)?
+            .to_be_bytes(),
+    )
+    .map_err(|e| Error::I2cWrite(e))
 }
 
 /// Read data into the provided buffer and validate the CRC8 checksum.
@@ -109,7 +125,7 @@ mod tests {
         let expectations = [Transaction::write(0x58, vec![0xab, 0xcd])];
         let mut mock = I2cMock::new(&expectations);
 
-        i2c::write_command(&mut mock, 0x58, 0xabcd as u16).unwrap();
+        i2c::write_command(&mut mock, 0x58, 0xabcd).unwrap();
 
         mock.done();
     }
@@ -129,7 +145,7 @@ mod tests {
         let expectations = [Transaction::write(0x58, vec![0xab, 0xcd])];
         let mut mock = I2cMock::new(&expectations);
 
-        i2c::write_command_u16(&mut mock, 0x58, 0xabcd as u16).unwrap();
+        i2c::write_command_u16(&mut mock, 0x58, 0xabcd).unwrap();
 
         mock.done();
     }
