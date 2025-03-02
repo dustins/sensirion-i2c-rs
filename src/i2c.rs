@@ -109,7 +109,7 @@ mod tests {
         let expectations = [Transaction::write(0x58, vec![0xab, 0xcd])];
         let mut mock = I2cMock::new(&expectations);
 
-        i2c::write_command(&mut mock, 0x58, 0xabcd).unwrap();
+        i2c::write_command(&mut mock, 0x58, 0xabcd as u16).unwrap();
 
         mock.done();
     }
@@ -129,7 +129,7 @@ mod tests {
         let expectations = [Transaction::write(0x58, vec![0xab, 0xcd])];
         let mut mock = I2cMock::new(&expectations);
 
-        i2c::write_command_u16(&mut mock, 0x58, 0xabcd).unwrap();
+        i2c::write_command_u16(&mut mock, 0x58, 0xabcd as u16).unwrap();
 
         mock.done();
     }
